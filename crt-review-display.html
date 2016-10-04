@@ -2,32 +2,27 @@
 
 <dom-module id="crt-review-display">
   <template>
+    <style>
+      .debug {
+        display: none;
+      }
+      :host[debug] .debug {
+        display: block;
+      }
+    </style>
     <div>
-      owner_email: {{data.owner_email}}<br>
-      private: {{data.private}}<br>
-      owner: {{data.owner}}<br>
-      subject: <pre>{{data.subject}}</pre><br>
-      description: <pre>{{data.description}}</pre><br>
-      created: {{data.created}}<br>
-      modified: {{data.modified}}<br>
-      patchsets: {{data.patchsets}}<br>
-      commit: {{data.commit}}<br>
-      closed: {{data.closed}}<br>
-      landed_days_ago: {{data.landed_days_ago}}<br>
-      offer_cq: {{data.offer_cq}}<br>
-      cq_dry_run_last_triggered_by: {{data.cq_dry_run_last_triggered_by}}<br>
-      cq_dry_run: {{data.cq_dry_run}}<br>
-      revert_will_skip_checks: {{data.revert_will_skip_checks}}<br>
-      cc_count: {{data.cc.length}}<br>
-      reviewers:
-      <ul><template is='dom-repeat' items={{data.reviewers}}>
-        <li>{{item}}</li>
-      </template></ul>
-      required_reviewers:
-      <ul><template is='dom-repeat' items={{data.required_reviewers}}>
-        <li>{{item}}</li>
-      </template></ul>
-      all_required_reviewers_approved: {{data.all_required_reviewers_approved}}<br>
+      <div class='debug'>
+      from {{data.owner_email}} ({{datePart(data.created)}}):
+
+      <h3>{{data.subject}}</h3>
+
+      <pre>{{data.description}}</pre>
+
+      <p>Reviewed by {{data.reviewers}}</p>    
+
+      <p>{{issueStatus(data.commit, data.closed, data.landed_days_ago)}}</p>
+
+      </div>
       messages: 
       <ul><hr><template is='dom-repeat' items={{data.messages}}>
         <template is='dom-if' if={{item.summary}}>
@@ -63,7 +58,20 @@ Polymer({
   is: 'crt-review-display',
 
   properties: {
-    data: { type: Object , value: function() { return { } } }
+    data: { type: Object , value: function() { return { } } },
+    debug: false
+  },
+
+  datePart: function(d) {
+    return new Date(d).toDateString();
+  },
+
+  issueStatus: function(committed, closed, landed) {
+    if (committed)
+      return `committed ${landed} days ago`;
+    if (closed)
+      return `closed ${landed} days ago`;
+    return "pending";
   },
 
   formatDate: function(message) {

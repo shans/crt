@@ -1,6 +1,7 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="crt-review-display.html">
+<link rel="import" href="../bower_components/paper-toggle-button/paper-toggle-button.html">
 
 <dom-module id="crt-review">
   <template>
@@ -9,7 +10,8 @@
       params="{{params}}"
       url="https://codereview.chromium.org/api/{{issue}}"
       on-response="handleResponse"></iron-ajax>
-    <crt-review-display data={{data}}></crt-review-display>
+    <paper-toggle-button active={{debug}}>Debug</paper-toggle-button>
+    <crt-review-display debug$={{debug}} data={{data}}></crt-review-display>
   </template>
 <script>
 
@@ -32,7 +34,8 @@ Polymer({
   properties: {
     params: { type: Object, value: function() { return { messages: true } } },
     issue: Number,
-    data: { type: Object , value: function() { return { } } }
+    data: { type: Object , value: function() { return { } } },
+    debug: false
   },
   
   handleResponse: function(e) {
