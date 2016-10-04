@@ -1,0 +1,81 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<dom-module id="crt-review-display">
+  <template>
+    <div>
+      owner_email: {{data.owner_email}}<br>
+      private: {{data.private}}<br>
+      owner: {{data.owner}}<br>
+      subject: <pre>{{data.subject}}</pre><br>
+      description: <pre>{{data.description}}</pre><br>
+      created: {{data.created}}<br>
+      modified: {{data.modified}}<br>
+      patchsets: {{data.patchsets}}<br>
+      commit: {{data.commit}}<br>
+      closed: {{data.closed}}<br>
+      landed_days_ago: {{data.landed_days_ago}}<br>
+      offer_cq: {{data.offer_cq}}<br>
+      cq_dry_run_last_triggered_by: {{data.cq_dry_run_last_triggered_by}}<br>
+      cq_dry_run: {{data.cq_dry_run}}<br>
+      revert_will_skip_checks: {{data.revert_will_skip_checks}}<br>
+      cc_count: {{data.cc.length}}<br>
+      reviewers:
+      <ul><template is='dom-repeat' items={{data.reviewers}}>
+        <li>{{item}}</li>
+      </template></ul>
+      required_reviewers:
+      <ul><template is='dom-repeat' items={{data.required_reviewers}}>
+        <li>{{item}}</li>
+      </template></ul>
+      all_required_reviewers_approved: {{data.all_required_reviewers_approved}}<br>
+      messages: 
+      <ul><hr><template is='dom-repeat' items={{data.messages}}>
+        <template is='dom-if' if={{item.summary}}>
+          {{formatDate(item)}}: {{item.summary}}<br>
+          {{item.waitClass}}<br>
+          <br>
+          {{item.type}} $$ {{item.reviewers}} $$ {{item.sender}}
+        </template>
+        <template is='dom-if' if={{!item.summary}}>
+        <p>
+          {{formatDate(item)}} from {{item.sender}}<br>
+          {{item.waitClass}}<br>
+          <br>
+          reviewers: {{item.reviewers}}<br>
+          lgtmers: {{item.lgtm}}<br>
+          all_lgtm: {{item.all_lgtm}}<br>
+          <br>
+          patchset: {{item.patchset}}<br>
+          recipients_count: {{item.recipients.length}}<br>
+          approval: {{item.approval}}<br>
+          text: <pre>{{item.text}}</pre><br>
+          issue_was_closed: {{item.issue_was_closed}}<br>
+          auto_generated: {{item.auto_generated}}<br>
+          disapproval: {{item.disapproval}}<br>
+        </p>
+        </template>
+        <hr>
+      </template></ul>
+    </div> 
+  </template>
+<script>
+Polymer({
+  is: 'crt-review-display',
+
+  properties: {
+    data: { type: Object , value: function() { return { } } }
+  },
+
+  formatDate: function(message) {
+    if (message.delta) {
+      var minutes = Math.floor(message.delta / 60 / 1000);
+      var hours = Math.floor(minutes / 60);
+      minutes -= hours * 60;
+      return `${hours}h ${minutes}m later`;
+    } else {
+      return message.date;
+    }
+  }
+});
+</script>
+</dom-module>
