@@ -1,4 +1,7 @@
 <link rel="import" href="bower_components/polymer/polymer.html">
 <link rel="import" href="crt-review.html">
 
-<crt-review issue=2370673002></crt-review>
+<crt-review id='review'></crt-review>
+<script>
+review.setAttribute('issue', location.hash.substring(1));
+</script>

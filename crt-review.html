@@ -91,13 +91,29 @@ Polymer({
     for (var message of data.messages) {
       if (message.type == ChangedReviewers) {
         reviewers = reviewers.slice();
-        reviewers.push(/[\s+]*([a-zA-Z@.]*)/.exec(message.summary)[1]);
+        var delta = message.summary.split(/[\s,]+/);
+        var adding = true;
+        for (var item of delta) {
+          if (item == '+')
+            adding = true;
+          else if (item == '-')
+            adding = false;
+          else if (adding)
+            reviewers.push(item)
+          else
+            reviewers.splice(reviewers.indexOf(item), 1);
+        }
       }
       message.reviewers = reviewers;
 
       if (message.approval && !lgtm.includes(message.sender)) {
         lgtm = lgtm.slice();
         lgtm.push(message.sender);
+        if (!reviewers.includes(message.sender)) {
+          reviewers = reviewers.slice();
+          reviewers.push(message.sender);
+          message.reviewers = reviewers;
+        }
       }
       message.lgtm = lgtm;
 
@@ -123,7 +139,7 @@ Polymer({
         continue;
       }
 
-      if (message.reviewers.includes(message.sender)) {
+      if (!message.auto_generated && message.reviewers.includes(message.sender)) {
         message.waitClass = WaitingForAuthor;
         continue;
       }
@@ -181,8 +197,11 @@ Polymer({
       if (message.type == Committed) {
         message.waitClass = NotWaiting;
         var j = i - 1;
-        while (j >= 0 && data.messages[j].auto_generated)
-          data.messages[j--].waitClass = WaitingForBots;
+        while (j >= 0) {
+          data.messages[j].waitClass = WaitingForBots;
+          if (data.messages[j--].type == CQBitChecked)
+            break;
+        }
         continue;
       }
      
