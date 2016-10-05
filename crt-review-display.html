@@ -30,7 +30,15 @@
           <br>
           {{item.type}} $$ {{item.reviewers}} $$ {{item.sender}}
         </template>
-        <template is='dom-if' if={{!item.summary}}>
+        <template is='dom-if' if={{item.comments}}>
+          {{formatDate(item)}}: {{item.waitClass}}
+          <ul>
+            <template is='dom-repeat' items={{item.comments}}>
+              <li><pre>{{item}}</pre></li>
+            </template>
+          </ul>
+        </template>
+        <template is='dom-if' if={{isDefaultItem(item)}}>
         <p>
           {{formatDate(item)}} from {{item.sender}}<br>
           {{item.waitClass}}<br>
@@ -38,6 +46,7 @@
           reviewers: {{item.reviewers}}<br>
           lgtmers: {{item.lgtm}}<br>
           all_lgtm: {{item.all_lgtm}}<br>
+          type: {{item.type}}<br>
           <br>
           patchset: {{item.patchset}}<br>
           recipients_count: {{item.recipients.length}}<br>
@@ -82,6 +91,10 @@ Polymer({
     } else {
       return message.date;
     }
+  },
+
+  isDefaultItem: function(item) {
+    return item.comments == undefined && item.summary == undefined;
   }
 });
 </script>
