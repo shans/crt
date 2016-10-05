@@ -23,8 +23,7 @@
       <p>{{issueStatus(data.commit, data.closed, data.landed_days_ago)}}</p>
 
       </div>
-      messages: 
-      <ul><hr><template is='dom-repeat' items={{data.messages}}>
+      <hr><template is='dom-repeat' items={{data.messages}}>
         <template is='dom-if' if={{item.summary}}>
           {{formatDate(item)}}: {{item.summary}}<br>
           {{item.waitClass}}<br>
@@ -50,7 +49,7 @@
         </p>
         </template>
         <hr>
-      </template></ul>
+      </template>
     </div> 
   </template>
 <script>
