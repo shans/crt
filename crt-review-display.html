@@ -9,6 +9,25 @@
       :host[debug] .debug {
         display: block;
       }
+      .message {
+        padding: 8px;
+        margin-bottom: 8px;
+      }
+      .message pre {
+        white-space: pre-wrap;
+      }
+      .message.waiting-for-review {
+        background: #FFA726;
+      }
+      .message.waiting-for-bots {
+        background: #66BB6A;
+      }
+      .message.waiting-for-author {
+        background: #29B6F6;
+      }
+      .message.other, .message.not-waiting {
+        background: #BDBDBD;
+      }
     </style>
     <div>
       <div class='debug'>
@@ -23,45 +42,47 @@
       <p>{{issueStatus(data.commit, data.closed, data.landed_days_ago)}}</p>
 
       </div>
-      <hr><template is='dom-repeat' items={{data.messages}}>
-        <template is='dom-if' if={{item.summary}}>
-          {{formatDate(item)}}: {{item.summary}}<br>
-          {{item.waitClass}}<br>
-          <br>
-          {{item.type}} $$ {{item.reviewers}} $$ {{item.sender}}
-        </template>
-        <template is='dom-if' if={{item.comments}}>
-          {{formatDate(item)}}: {{item.waitClass}}
-          <template is='dom-if' if={{item.analysis}}>
-            {{item.analysis.documentSentiment.magnitude}} /
-            {{item.analysis.documentSentiment.polarity}}
+      <hr>
+      <template is='dom-repeat' items={{data.messages}}>
+        <div class$="[[messageClasses(item)]]">
+          <template is='dom-if' if={{item.summary}}>
+            {{formatDate(item)}}: {{item.summary}}<br>
+            {{item.waitClass}}<br>
+            <br>
+            {{item.type}} $$ {{item.reviewers}} $$ {{item.sender}}
           </template>
-          <ul>
-            <template is='dom-repeat' items={{item.comments}}>
-              <li><pre>{{item}}</pre></li>
+          <template is='dom-if' if={{item.comments}}>
+            {{formatDate(item)}}: {{item.waitClass}}
+            <template is='dom-if' if={{item.analysis}}>
+              {{item.analysis.documentSentiment.magnitude}} /
+              {{item.analysis.documentSentiment.polarity}}
             </template>
-          </ul>
-        </template>
-        <template is='dom-if' if={{isDefaultItem(item)}}>
-        <p>
-          {{formatDate(item)}} from {{item.sender}}<br>
-          {{item.waitClass}}<br>
-          <br>
-          reviewers: {{item.reviewers}}<br>
-          lgtmers: {{item.lgtm}}<br>
-          all_lgtm: {{item.all_lgtm}}<br>
-          type: {{item.type}}<br>
-          <br>
-          patchset: {{item.patchset}}<br>
-          recipients_count: {{item.recipients.length}}<br>
-          approval: {{item.approval}}<br>
-          text: <pre>{{item.text}}</pre><br>
-          issue_was_closed: {{item.issue_was_closed}}<br>
-          auto_generated: {{item.auto_generated}}<br>
-          disapproval: {{item.disapproval}}<br>
-        </p>
-        </template>
-        <hr>
+            <ul>
+              <template is='dom-repeat' items={{item.comments}}>
+                <li><pre>{{item}}</pre></li>
+              </template>
+            </ul>
+          </template>
+          <template is='dom-if' if={{isDefaultItem(item)}}>
+          <p>
+            {{formatDate(item)}} from {{item.sender}}<br>
+            {{item.waitClass}}<br>
+            <br>
+            reviewers: {{item.reviewers}}<br>
+            lgtmers: {{item.lgtm}}<br>
+            all_lgtm: {{item.all_lgtm}}<br>
+            type: {{item.type}}<br>
+            <br>
+            patchset: {{item.patchset}}<br>
+            recipients_count: {{item.recipients.length}}<br>
+            approval: {{item.approval}}<br>
+            text: <pre>{{item.text}}</pre><br>
+            issue_was_closed: {{item.issue_was_closed}}<br>
+            auto_generated: {{item.auto_generated}}<br>
+            disapproval: {{item.disapproval}}<br>
+          </p>
+          </template>
+        </div>
       </template>
     </div> 
   </template>
@@ -99,7 +120,18 @@ Polymer({
 
   isDefaultItem: function(item) {
     return item.comments == undefined && item.summary == undefined;
-  }
+  },
+
+  messageClasses: function(message) {
+    var result = ['message'];
+    if (message.type) {
+      result.push(message.type.toLowerCase().replace(/ /g, '-'));
+    }
+    if (message.waitClass) {
+      result.push(message.waitClass.toLowerCase().replace(/ /g, '-'));
+    }
+    return result.join(' ');
+  },
 });
 </script>
 </dom-module>
