@@ -52,11 +52,10 @@ function classifyMessageTypes(data) {
         if (message.text.includes(pragma))
           message.type = messagePragmas[pragma];
       }
-    } else if (message.text.includes(data.issue)) {
-      if (message.sender == data.owner_email)
-        message.type = ResponseToComments;
-      else
-        message.type = Comments;
+    } else if (message.text.includes(data.issue) && message.sender == data.owner_email) {
+      message.type = ResponseToComments;
+    } else {
+      message.type = Comments;
     }
   }
 }
@@ -113,7 +112,7 @@ function extractComments(data) {
         }
         comments.push(comment);
       }
-      message.comments = comments;
+      message.comments = comments.filter(comment => comment.trim() != '');
     }
   }
 }
