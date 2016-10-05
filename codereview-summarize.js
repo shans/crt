@@ -295,7 +295,6 @@ function addNormalizedNames(data) {
     }
     return names[name];
   }
-console.log(names);
   for (let message of data.messages) {
     message.normalizedSender = normalize(message.sender);
   }
