@@ -20,9 +20,8 @@ function summarize(data) {
   generateSummaries(data);
   extractComments(data);
   generateEffectiveReviewers(data);
-  classifyWaitingType(data); 
-
-  return data;
+  classifyWaitingType(data);
+  return analyzeSentiment(data).then(() => data);
 }
 
 function createDateDeltas(data) {
@@ -241,7 +240,6 @@ function classifyWaitingType(data) {
       }
       continue;
     }
-   
 
     if (message.auto_generated) {
       message.waitClass = data.messages[i - 1].waitClass;
@@ -253,3 +251,29 @@ function classifyWaitingType(data) {
   }
 }
 
+function analyzeSentiment(data) {
+  if (!window.analysisToken) {
+    return Promise.resolve();
+  }
+  let promises = [];
+  for (let message of data.messages) {
+    if (!message.comments)
+      continue;
+    var request = {
+      document:{
+        type: 'PLAIN_TEXT',
+        content: message.comments.join('\n'),
+      },
+      encodingType: 'UTF8',
+    };
+    promises.push(fetch('https://language.googleapis.com/v1beta1/documents:analyzeSentiment', {
+      method: 'POST',
+      body: JSON.stringify(request),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${analysisToken}`,
+      },
+    }).then(response => response.json()).then(json => message.analysis = json));
+  }
+  return Promise.all(promises);
+}

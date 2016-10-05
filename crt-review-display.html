@@ -32,6 +32,10 @@
         </template>
         <template is='dom-if' if={{item.comments}}>
           {{formatDate(item)}}: {{item.waitClass}}
+          <template is='dom-if' if={{item.analysis}}>
+            {{item.analysis.documentSentiment.magnitude}} /
+            {{item.analysis.documentSentiment.polarity}}
+          </template>
           <ul>
             <template is='dom-repeat' items={{item.comments}}>
               <li><pre>{{item}}</pre></li>

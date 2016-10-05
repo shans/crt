@@ -26,9 +26,9 @@ Polymer({
     data: { type: Object , value: function() { return { } } },
     debug: false
   },
-  
+
   handleResponse: function(e) {
-    this.set("data", this.summarize(e.detail.response));
+    this.summarize(e.detail.response).then(data => this.set("data", data));
   },
 
   summarize: function(data) {
