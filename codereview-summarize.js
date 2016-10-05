@@ -21,6 +21,7 @@ function summarize(data) {
   extractComments(data);
   generateEffectiveReviewers(data);
   classifyWaitingType(data);
+  addNormalizedNames(data);
   return analyzeSentiment(data).then(() => data);
 }
 
@@ -275,4 +276,26 @@ function analyzeSentiment(data) {
     }).then(response => response.json()).then(json => message.analysis = json));
   }
   return Promise.all(promises);
+}
+
+function addNormalizedNames(data) {
+  let names = {
+    [data.owner_email]: 'author',
+    'commit-bot@chromium.org': 'commit-bot',
+  };
+  let reviewerCount = 0;
+  let driveByCount = 0;
+  let allReviewers = new Set([].concat(...data.messages.map(message => message.reviewers)));
+  for (let reviewer of allReviewers) {
+    names[reviewer] = `reviewer${++reviewerCount}`;
+  }
+  function normalize(name) {
+    if (!(name in names)) {
+      names[name] = `driveby${++driveByCount}`;
+    }
+    return names[name];
+  }
+  for (let message of data.messages) {
+    message.normalizedSender = normalize(message.sender);
+  }
 }
