@@ -285,8 +285,7 @@ function addNormalizedNames(data) {
   };
   let reviewerCount = 0;
   let driveByCount = 0;
-  let allReviewers = new Set([].concat.apply([], data.messages.map(message => message.reviewers)))
-console.log(allReviewers);
+  let allReviewers = new Set([].concat(...data.messages.map(message => message.reviewers)));
   for (let reviewer of allReviewers) {
     names[reviewer] = `reviewer${++reviewerCount}`;
   }
