@@ -20,7 +20,9 @@ function summarize(data) {
   generateSummaries(data);
   extractComments(data);
   generateEffectiveReviewers(data);
-  classifyWaitingType(data);
+  classifyWaitingType(data); 
+  computeAggregateWaitingTimes(data);
+  
   return analyzeSentiment(data).then(() => data);
 }
 
@@ -276,4 +278,15 @@ function analyzeSentiment(data) {
     }).then(response => response.json()).then(json => message.analysis = json));
   }
   return Promise.all(promises);
+}
+
+function computeAggregateWaitingTimes(data) {
+  var type = Other;
+  data.waitingTimes = {};
+  for (var message of data.messages) {
+    if (data.waitingTimes[type] == undefined)
+      data.waitingTimes[type] = 0;
+    data.waitingTimes[type] += message.delta;
+    type = message.waitClass;
+  }
 }

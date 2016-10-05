@@ -23,6 +23,9 @@
       <p>{{issueStatus(data.commit, data.closed, data.landed_days_ago)}}</p>
 
       </div>
+      <p><b>Waiting for Review: </b>{{waitingForReview(data)}}</p>
+      <p><b>Waiting for Author: </b>{{waitingForAuthor(data)}}</p>
+      <p><b>Waiting for Bots: </b>{{waitingForBots(data)}}</p>
       <hr><template is='dom-repeat' items={{data.messages}}>
         <template is='dom-if' if={{item.summary}}>
           {{formatDate(item)}}: {{item.summary}}<br>
@@ -69,9 +72,10 @@
 Polymer({
   is: 'crt-review-display',
 
+
   properties: {
     data: { type: Object , value: function() { return { } } },
-    debug: false
+    debug: false,
   },
 
   datePart: function(d) {
@@ -88,13 +92,38 @@ Polymer({
 
   formatDate: function(message) {
     if (message.delta) {
-      var minutes = Math.floor(message.delta / 60 / 1000);
-      var hours = Math.floor(minutes / 60);
-      minutes -= hours * 60;
-      return `${hours}h ${minutes}m later`;
+      return this.formatTimeAmount(message.delta) + ' later';
     } else {
       return message.date;
     }
+  },
+
+  waitingForReview(data) {
+    if (data.waitingTimes)
+      return this.formatTimeAmount(data.waitingTimes["waiting for review"]);
+  },
+
+  waitingForAuthor(data) {
+    if (data.waitingTimes)
+      return this.formatTimeAmount(data.waitingTimes["waiting for author"]);
+  },
+
+  waitingForBots(data) {
+    if (data.waitingTimes)
+      return this.formatTimeAmount(data.waitingTimes["waiting for bots"]);
+  },
+
+  formatTimeAmount(amount) {
+    var minutes = Math.floor(amount / 60 / 1000);
+    var hours = Math.floor(minutes / 60);
+    minutes -= hours * 60;
+    var days = Math.floor(hours / 24);
+    hours -= days * 24;
+    if (days > 0)
+      return `${days}d ${hours}h ${minutes}m`;
+    if (hours > 0)
+      return `${hours}h ${minutes}m`;
+    return `${minutes}m`;
   },
 
   isDefaultItem: function(item) {
