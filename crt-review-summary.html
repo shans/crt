@@ -1,0 +1,78 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link href="https://fonts.googleapis.com/css?family=Roboto+Mono" rel="stylesheet">
+
+<dom-module id="crt-review-summary">
+  <style>
+    :host {
+      font-family: roboto;
+    }
+    .comment {
+      white-space: pre-wrap;
+      margin-left: 8px;
+    }
+    .sender, .wait-class{
+      font-weight: bold;
+    }
+    .wait-class {
+      width: 100%;
+      border-bottom: solid black 1px;
+    }
+    .duration {
+      flex-grow: 0;
+      flex-shrink: 0;
+      width: 150px;
+    }
+    .entry {
+      display: flex;
+      margin-bottom: 8px;
+    }
+    .message {
+      margin-bottom: 8px;
+    }
+  </style>
+  <template>
+    <template is='dom-repeat' items={{summary}}>
+      <div class="wait-class">[[item.waitClass]]</div>
+      <div class="entry">
+        <div class="duration">[[formatDelta(item.duration)]]</div>
+        <div class="messages">
+          <template is='dom-repeat' items={{item.messages}}>
+            <div class="message">
+              <div><span class=sender>[[item.normalizedSender]]</span> [[formatDelta(item.entryDelta)]]</div>
+              <template is='dom-repeat' items={{item.comments}}>
+                <p class="comment">[[item]]</p>
+              </template>
+            </div>
+          </template>
+        </div>
+      </div>
+    </template>
+  </template>
+<script>
+Polymer({
+  is: 'crt-review-summary',
+
+  properties: {
+    summary: { type: Array },
+    debug: false
+  },
+
+  equals(x, y) {
+    return x == y;
+  },
+
+  formatDelta: function(delta) {
+    var minutes = Math.floor(delta / 60 / 1000);
+    var hours = Math.floor(minutes / 60);
+    minutes -= hours * 60;
+    hours = hours == 0 ? '' : `${hours}h`;
+    minutes = minutes == 0 ? '' : `${minutes}m`;
+    if (!hours && !minutes) {
+      return 'instantly';
+    } else {
+      return [hours, minutes].filter(v => v != '').join(' ');
+    }
+  },
+});
+</script>
+</dom-module>
