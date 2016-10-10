@@ -28,6 +28,18 @@
       .message.other, .message.not-waiting {
         background: #BDBDBD;
       }
+
+      .patchsets {
+        display: flex;
+        flex-wrap: wrap;
+      }
+
+      .patchset {
+        border: 1px solid black;
+        border-radius: 5px;
+        padding: 5px;
+        margin: 5px;
+      }
     </style>
     <div>
       <div class='debug'>
@@ -45,6 +57,16 @@
       <p><b>Waiting for Review: </b>{{waitingForReview(data)}}</p>
       <p><b>Waiting for Author: </b>{{waitingForAuthor(data)}}</p>
       <p><b>Waiting for Bots: </b>{{waitingForBots(data)}}</p>
+      <div class="patchsets">
+        <template is='dom-repeat' items='{{data.patchset_info}}' sort='sortByPatchset'>
+          <div class='patchset'>
+            <p><b>Patchset: </b>{{item.patchset}}
+            <p><b>Files Changed: </b>{{item.num_files}}
+            <p><b>Added Lines: </b>{{item.num_added}}
+            <p><b>Removed Lines: </b>{{item.num_removed}}
+          </div>
+        </template>
+      </div>
       <hr>
       <template is='dom-repeat' items={{data.messages}}>
         <div class$="[[messageClasses(item)]]">
@@ -101,6 +123,10 @@ Polymer({
 
   datePart: function(d) {
     return new Date(d).toDateString();
+  },
+
+  sortByPatchset: function(a, b) {
+    return a.patchset - b.patchset;
   },
 
   issueStatus: function(committed, closed, landed) {

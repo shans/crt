@@ -15,6 +15,13 @@
       url="https://codereview.chromium.org/api/{{issue}}"
       handle-as="json"
       on-response="handleResponse"></iron-ajax>
+    <template is="dom-repeat" items="{{data.patchsets}}">
+      <iron-ajax
+        auto
+        url="https://codereview.chromium.org/api/{{issue}}/{{item}}"
+        handle-as="json"
+        on-response="handlePatchset"></iron-ajax>
+    </template>
     <paper-toggle-button active={{debug}}>Debug</paper-toggle-button>
     <crt-review-summary summary={{summary}}></crt-review-summary>
     <crt-review-display debug$={{debug}} data={{data}}></crt-review-display>
@@ -27,7 +34,7 @@ Polymer({
   properties: {
     params: { type: Object, value: function() { return { messages: true } } },
     issue: Number,
-    data: {type: Object},
+    data: {type: Object, value: function() { return {} }},
     summary: {type: Array},
     debug: false
   },
@@ -38,6 +45,13 @@ Polymer({
       this.summary = summarize(data);
     });
   },
+
+  handlePatchset: function(e) {
+    var patchset_info = e.detail.response;
+    if (this.data.patchset_info == undefined)
+      this.set("data.patchset_info", []);
+    this.push("data.patchset_info" , summarize_patchset(patchset_info));
+  }
 });
 </script>
 </dom-module>

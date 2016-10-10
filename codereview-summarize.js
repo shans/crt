@@ -29,6 +29,20 @@ function annotate(data) {
   return analyzeSentiment(fastAnnotate(data)).then(() => data);
 }
 
+function summarize_patchset(data) {
+  var result = {};
+  result.num_files = 0;
+  result.num_added = 0;
+  result.num_removed = 0;
+  for (var key in data.files) {
+    result.num_files += 1;
+    result.num_added += data.files[key].num_added;
+    result.num_removed += data.files[key].num_removed;
+  }
+  result.patchset = data.patchset;
+  return result;
+}
+
 function summarize(data) {
   let waitClass = Other;
   let summary = [];
