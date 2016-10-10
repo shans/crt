@@ -159,6 +159,11 @@ function generateEffectiveReviewers(data) {
   // set effective reviewers
   var reviewers = [];
   var lgtm = [];
+
+  var m = /\nR=([^\b\n]+)/.exec(data.description);
+  if (m)
+    reviewers = m[1].split(',').map(a => a.trim());
+
   for (var message of data.messages) {
     if (message.type == ChangedReviewers) {
       reviewers = reviewers.slice();
@@ -220,8 +225,10 @@ function classifyWaitingType(data) {
     if (message.type == CQBitChecked) {
       if (message.all_lgtm)
         message.waitClass = WaitingForBots;
-      else
+      else if (i > 0)
         message.waitClass = data.messages[i - 1].waitClass;
+      else
+        message.waitClass = Other;
       continue;
     } 
 
@@ -278,12 +285,10 @@ function classifyWaitingType(data) {
       continue;
     }
 
-    if (message.auto_generated) {
+    if (i == 0)
+      message.waitClass = Other;
+    else
       message.waitClass = data.messages[i - 1].waitClass;
-      continue;
-    }
-
-    message.waitClass = "uuuuhhhhhhh....";
 
   }
 }
