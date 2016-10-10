@@ -57,6 +57,8 @@
       <p><b>Waiting for Review: </b>{{waitingForReview(data)}}</p>
       <p><b>Waiting for Author: </b>{{waitingForAuthor(data)}}</p>
       <p><b>Waiting for Bots: </b>{{waitingForBots(data)}}</p>
+      <p><b>Review Cycles: </b>{{data.review_cycles}}</p>
+      <p><b>Comment Count: </b>{{data.comment_count}}</p>
       <div class="patchsets">
         <template is='dom-repeat' items='{{data.patchset_info}}' sort='sortByPatchset'>
           <div class='patchset'>

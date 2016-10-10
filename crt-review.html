@@ -41,8 +41,8 @@ Polymer({
 
   handleResponse: function(e) {
     annotate(e.detail.response).then(data => {
-      this.data = data;
       this.summary = summarize(data);
+      this.data = data;
     });
   },
 

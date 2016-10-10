@@ -20,6 +20,7 @@ function fastAnnotate(data) {
   extractComments(data);
   generateEffectiveReviewers(data);
   classifyWaitingType(data);
+  determineCommentCount(data);
   addNormalizedNames(data);
   computeAggregateWaitingTimes(data);
   return data;
@@ -73,6 +74,9 @@ function summarize(data) {
   if (entry) {
     summary.push(entry);
   }
+
+  data.review_cycles = summary.filter(a => a.waitClass == WaitingForReview).length;
+
   return summary;
 }
 
@@ -167,6 +171,11 @@ function extractComments(data) {
       message.comments = comments.filter(comment => comment.trim() != '');
     }
   }
+}
+
+function determineCommentCount(data) {
+  data.comment_count = 0;
+  data.messages.filter(a => a.sender != data.owner).forEach(a => (a.comments ? data.comment_count += a.comments.length : undefined));
 }
 
 function generateEffectiveReviewers(data) {
