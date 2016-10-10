@@ -1,6 +1,7 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="crt-review-display.html">
+<link rel="import" href="crt-review-summary.html">
 <link rel="import" href="../bower_components/paper-toggle-button/paper-toggle-button.html">
 
 <script src="DONOTCOMMIT.js"></script>
@@ -12,8 +13,10 @@
       auto
       params="{{params}}"
       url="https://codereview.chromium.org/api/{{issue}}"
+      handle-as="json"
       on-response="handleResponse"></iron-ajax>
     <paper-toggle-button active={{debug}}>Debug</paper-toggle-button>
+    <crt-review-summary summary={{summary}}></crt-review-summary>
     <crt-review-display debug$={{debug}} data={{data}}></crt-review-display>
   </template>
 <script>
@@ -24,19 +27,17 @@ Polymer({
   properties: {
     params: { type: Object, value: function() { return { messages: true } } },
     issue: Number,
-    data: { type: Object , value: function() { return { } } },
+    data: {type: Object},
+    summary: {type: Array},
     debug: false
   },
 
   handleResponse: function(e) {
-    this.summarize(e.detail.response).then(data => this.set("data", data));
+    annotate(e.detail.response).then(data => {
+      this.data = data;
+      this.summary = summarize(data);
+    });
   },
-
-  summarize: function(data) {
-    data = JSON.parse(JSON.stringify(data));
-    return summarize(data);
-  }
-
 });
 </script>
 </dom-module>
