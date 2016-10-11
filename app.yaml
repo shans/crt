@@ -1,0 +1,26 @@
+service: default
+runtime: python27
+api_version: 1
+threadsafe: true
+libraries:
+- name: ssl
+  version: latest
+
+skip_files:
+- ^(.*/)?#.*#$
+- ^(.*/)?.*~$
+- ^(.*/)?.*\.py[co]$
+- ^(.*/)?.*/RCS/.*$
+- ^(.*/)?\..*$
+- node_modules
+
+handlers:
+- url: /api/.*
+  script: api.app
+  login: admin
+  secure: always
+
+- url: /
+  static_dir: client
+  login: admin
+  secure: always
