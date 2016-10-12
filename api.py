@@ -6,9 +6,6 @@ from google.appengine.ext import ndb
 class Issue(ndb.Model):
   json = ndb.TextProperty()
 
-class Patch(ndb.Model):
-  json = ndb.TextProperty()
-
 class ApiProxy(webapp2.RequestHandler):
   def get(self, issueNumber):
     self.response.headers.add_header("Access-Control-Allow-Origin", "*")
