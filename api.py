@@ -31,7 +31,7 @@ class ApiProxy(webapp2.RequestHandler):
     rpcs = []
     for patch in parsedResult['patchsets']:
       rpc = urlfetch.create_rpc()
-      rpc.callback = (lambda rpc: (lambda: parsedResult['patchset_data'].append(rpc.get_result().content)))(rpc)
+      rpc.callback = (lambda rpc: (lambda: parsedResult['patchset_data'].append(json.loads(rpc.get_result().content))))(rpc)
       urlfetch.make_fetch_call(rpc, 'http://codereview.chromium.org/api/' + issueNumber + '/' + str(patch))
       rpcs.append(rpc)
     
@@ -41,11 +41,12 @@ class ApiProxy(webapp2.RequestHandler):
 
 class SearchProxy(webapp2.RequestHandler):
   def get(self):
-    print self.request.get('keys_only')
+    self.response.headers.add_header("Access-Control-Allow-Origin", "*")
+
     if not (self.request.get('keys_only') == "True"):
       self.response.set_status(400)
       return
-    print self.request.query_string
+
     result = urlfetch.fetch(url='http://codereview.chromium.org/search?' + self.request.query_string).content
     self.response.write(result)
 

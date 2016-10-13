@@ -4,24 +4,16 @@
 <link rel="import" href="crt-review-summary.html">
 <link rel="import" href="../bower_components/paper-toggle-button/paper-toggle-button.html">
 
-<script src="DONOTCOMMIT.js"></script>
+<script src="../DONOTCOMMIT.js"></script>
 <script src="codereview-summarize.js"></script>
 
 <dom-module id="crt-review">
   <template>
     <iron-ajax
       auto
-      params="{{params}}"
-      url="https://codereview.chromium.org/api/{{issue}}"
+      url="https://chromium-review-analysis.appspot.com/api/{{issue}}"
       handle-as="json"
       on-response="handleResponse"></iron-ajax>
-    <template is="dom-repeat" items="{{data.patchsets}}">
-      <iron-ajax
-        auto
-        url="https://codereview.chromium.org/api/{{issue}}/{{item}}"
-        handle-as="json"
-        on-response="handlePatchset"></iron-ajax>
-    </template>
     <paper-toggle-button active={{debug}}>Debug</paper-toggle-button>
     <crt-review-summary summary={{summary}}></crt-review-summary>
     <crt-review-display debug$={{debug}} data={{data}}></crt-review-display>
@@ -32,7 +24,6 @@ Polymer({
   is: 'crt-review',
 
   properties: {
-    params: { type: Object, value: function() { return { messages: true } } },
     issue: Number,
     data: {type: Object, value: function() { return {} }},
     summary: {type: Array},
@@ -42,16 +33,10 @@ Polymer({
   handleResponse: function(e) {
     annotate(e.detail.response).then(data => {
       this.summary = summarize(data);
+      data.patchset_info = data.patchset_data.map(summarize_patchset);
       this.data = data;
     });
   },
-
-  handlePatchset: function(e) {
-    var patchset_info = e.detail.response;
-    if (this.data.patchset_info == undefined)
-      this.set("data.patchset_info", []);
-    this.push("data.patchset_info" , summarize_patchset(patchset_info));
-  }
 });
 </script>
 </dom-module>
