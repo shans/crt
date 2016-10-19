@@ -39,7 +39,7 @@
           <template is='dom-repeat' items={{item.messages}}>
             <div class="message">
               <div><span class=sender>[[item.normalizedSender]]</span> [[formatDelta(item.entryDelta)]]</div>
-              <template is='dom-repeat' items={{item.comments}}>
+              <template is='dom-repeat' items={{item.normalizedComments}}>
                 <p class="comment">[[item]]</p>
               </template>
             </div>

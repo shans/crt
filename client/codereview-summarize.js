@@ -373,5 +373,9 @@ function addNormalizedNames(data) {
   }
   for (let message of data.messages) {
     message.normalizedSender = normalize(message.sender);
+
+    if (message.comments) {
+      message.normalizedComments = message.comments.map(comment => comment.replace(/(On [0-9/: ]*), .*? wrote:/g, "$1"));
+    }
   }
 }
