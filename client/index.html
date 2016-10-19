@@ -1,7 +1,15 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="crt-review.html">
+<link rel="import" href="../bower_components/app-route/app-location.html">
 
-<crt-review id='review'></crt-review>
+<dom-module id='crt-toplevel'>
+<template>
+  <app-location route={{route}} use-hash-as-path></app-location>
+  <crt-review issue='{{route.path}}'></crt-review>
+</template>
 <script>
-review.setAttribute('issue', location.hash.substring(1));
+  Polymer({is: 'crt-toplevel'});
 </script>
+</dom-module>
+
+<crt-toplevel></crt-toplevel>

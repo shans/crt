@@ -1,0 +1,184 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../bower_components/app-route/app-location.html">
+
+<script src="codereview-summarize.js"></script>
+
+<dom-module id='crt-search'>
+  <template>
+    <app-location route={{route}} use-hash-as-path></app-location>
+    <iron-ajax
+      id='request'
+      auto
+      params="{{params}}"
+      url="https://chromium-review-analysis.appspot.com/search"
+      on-response="handleResponse"></iron-ajax>
+    <div>
+      <p>count: {{count(reviewLatencies)}} / {{count(authorLatencies)}}</p>
+      <p>average waiting for reviewer: {{averageLatency(reviewLatencies)}}</p>
+      <p>median: {{medianLatency(reviewLatencies)}}</p>
+      <p>average waiting for author: {{averageLatency(authorLatencies)}}</p>
+      <p>median: {{medianLatency(authorLatencies)}}</p>
+    </div>
+    <h2>Review Latencies</h2>
+    <canvas id='reviewCanvas' width={{graphWidth}} height={{graphHeight}}></canvas>
+    <h2>Author Latencies</h2>
+    <canvas id='authorCanvas' width={{graphWidth}} height={{graphHeight}}></canvas>
+  </template>
+  <script>
+
+Polymer({
+  is: 'crt-search',
+  properties: {
+    params: { type: Object, computed: 'paramsFromData(route.path)'},
+    reviewLatencies: {type: Array, value: function() { return []; } },
+    authorLatencies: {type: Array, value: function() { return []; } },
+    graphWidth: {type: Number, value: 500},
+    graphHeight: {type: Number, value: 300},
+    numBuckets: {type: Number, value: 40},
+  },
+ 
+  paramsFromData(path) {
+    var params = { format: 'json', keys_only: 'True', limit: 30 };
+    [owner, reviewer] = path.split('/');
+
+    if (!(owner || reviewer))
+      return;
+
+    this.reviewLatencies = [];
+    this.authorLatencies = [];
+
+    if (owner)
+      params.owner = owner;
+    if (reviewer)
+      params.reviewer = reviewer;
+
+    return params;
+  },
+
+  issueURL(issue) {
+    return `https://chromium-review-analysis.appspot.com/api/${issue}`;
+  },
+
+  average(list) {
+    return list.reduce((a, b) => a + b, 0) / list.length;
+  },
+
+  median(list) {
+    return list[Math.floor(list.length/2)];
+  },
+
+  count(list) {
+    return list.length;
+  },
+
+  averageLatency(list) { 
+    return this.formatTimeAmount(this.average(list));
+  },
+
+  medianLatency(list) {
+    return this.formatTimeAmount(this.median(list));
+  },
+
+  formatTimeAmount(amount) {
+    var minutes = Math.floor(amount / 60 / 1000);
+    var hours = Math.floor(minutes / 60);
+    minutes -= hours * 60;
+    var days = Math.floor(hours / 24);
+    hours -= days * 24;
+    if (days > 0)
+      return `${days}d ${hours}h ${minutes}m`;
+    if (hours > 0)
+      return `${hours}h ${minutes}m`;
+    return `${minutes}m`;
+  },
+
+  redrawLatencyGraph(latencies, canvas) {
+    var ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, this.graphWidth, this.graphHeight);
+    
+    var max = latencies[latencies.length - 1];
+    var delta = max / this.numBuckets;
+    var current = 0;
+    var count = 0;
+
+    ctx.fillStyle = 'rgb(255, 100, 100)';
+    var width = this.graphWidth / this.numBuckets - 1;
+    var buckets = [];  
+    for (var i = 0; i < this.numBuckets; i++) {
+      var lastCount = count;
+      current += delta;
+      while (latencies[count] <= current)
+        count++;
+      buckets.push(count - lastCount);
+    }
+    var bmax = Math.max(...buckets);
+    for (var i = 0; i < buckets.length; i++)
+      ctx.fillRect(i * this.graphWidth / this.numBuckets, this.graphHeight - buckets[i] / bmax * this.graphHeight, width, this.graphHeight);
+
+    ctx.fillStyle = 'rgb(0, 0, 0)';
+
+    current = 0;
+    count = 0;
+    delta = max / this.graphWidth;
+    for (var i = 0; i < this.graphWidth; i++) {
+      current += delta;
+      while (latencies[count] <= current)
+        count++;
+      var pos = (count - 1) * this.graphHeight / latencies.length;
+      ctx.fillRect(i, this.graphHeight - pos, 1, 1);
+    }
+    var averagePos = this.graphWidth / max * this.average(latencies);
+    ctx.fillRect(averagePos, this.graphHeight - 10, 1, 10);
+
+    ctx.fillStyle = 'rgb(0, 255, 0)';
+    var medianPos = this.graphWidth / max * this.median(latencies);
+    ctx.fillRect(medianPos, this.graphHeight - 10, 1, 10);
+  },
+
+  handleResponse(e) {
+    var cls = e.detail.response;
+    cls.results.forEach(cl => fetch(this.issueURL(cl)).then(response => response.json()).then(issue => this.handleCL(issue)));
+    if (cls.cursor !== "")
+      this.set("params.cursor", cls.cursor);
+  },
+
+  sortInto(list, item) {
+    var pos = 0;
+    while (pos < list.length && list[pos] < item)
+      pos++;
+    list.splice(pos, 0, item);
+  },
+
+  handleCL(cl) {
+    cl = fastAnnotate(cl);
+    if (cl.waitingTimes["waiting for review"] == undefined) {
+      console.log(cl.waitingTimes, cl.issue);
+      return;
+    }
+    this.sortInto(this.reviewLatencies, cl.waitingTimes["waiting for review"]);
+
+    // this.reviewLatencies.push(cl.waitingTimes["waiting for review"]);
+    if (cl.waitingTimes["waiting for author"] !== undefined) {
+      this.sortInto(this.authorLatencies, cl.waitingTimes["waiting for author"]);
+    } else {
+      this.sortInto(this.authorLatencies, 0);
+    }
+    
+    var al = this.authorLatencies;
+    this.set('authorLatencies', []);
+    this.set('authorLatencies', al);
+
+    var rl = this.reviewLatencies;
+    this.set('reviewLatencies', []);
+    this.set('reviewLatencies', rl);
+
+    this.redrawLatencyGraph(this.reviewLatencies, reviewCanvas);
+    this.redrawLatencyGraph(this.authorLatencies, authorCanvas);
+  }
+});
+
+  </script>
+</dom-module>
+
+<crt-search></crt-search>

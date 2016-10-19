@@ -18,6 +18,7 @@
   "dependencies": {
     "polymer": "Polymer/polymer#^1.2.0",
     "iron-ajax": "PolymerElements/iron-ajax#~1.1.1",
-    "paper-toggle-button": "PolymerElements/paper-toggle-button#~1.1.1"
+    "paper-toggle-button": "PolymerElements/paper-toggle-button#~1.1.1",
+    "app-route": "PolymerElements/app-route"
   }
 }
