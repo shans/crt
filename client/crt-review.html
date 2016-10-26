@@ -33,8 +33,15 @@ Polymer({
   handleResponse: function(e) {
     annotate(e.detail.response).then(data => {
       this.summary = summarize(data);
+      console.log(data);
       data.patchset_info = data.patchset_data.map(summarize_patchset);
       this.data = data;
+      if (data.serverNeedsAnalysis) {
+        var request = new Request(`https://chromium-review-analysis.appspot.com/privateApi/${data.issue}`,
+          { method: 'POST', body: JSON.stringify(data), credentials: 'include', mode: 'no-cors' });
+        fetch(request);
+        console.log('analysis uploaded');
+      }
     });
   },
 });

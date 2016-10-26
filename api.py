@@ -4,7 +4,9 @@ from google.appengine.api import urlfetch
 from google.appengine.ext import ndb
 
 class Issue(ndb.Model):
-  json = ndb.TextProperty()
+  json = ndb.TextProperty(compressed=True)
+  analysedJson = ndb.TextProperty(compressed=True)
+  sentimentAnalysed = ndb.BooleanProperty(default=False)
 
 class ApiProxy(webapp2.RequestHandler):
   def get(self, issueNumber):
@@ -14,11 +16,13 @@ class ApiProxy(webapp2.RequestHandler):
     if issue is None:
       result = urlfetch.fetch(url='http://codereview.chromium.org/api/' + issueNumber + '?messages=True').content
       parsedResult = self.attachPatchsets(issueNumber, json.loads(result))
-      result = json.dumps(parsedResult)
       if parsedResult['closed']:
+        parsedResult['serverNeedsAnalysis'] = True
+        result = json.dumps(parsedResult)
         issue = Issue(id=issueNumber, json=result)
         issue.put()
-    else:
+      result = json.dumps(parsedResult)
+    else: 
       result = issue.json
 
     if issue is not None:
@@ -39,6 +43,19 @@ class ApiProxy(webapp2.RequestHandler):
       rpc.wait()
     return parsedResult
 
+class PrivateApiProxy(webapp2.RequestHandler):
+  def post(self, issueNumber):
+    issue = ndb.Key(Issue, issueNumber).get()
+    if issue is None:
+      self.response.set_status(400)
+      return
+    issue.analysedJson = self.request.body
+    parsedJson = json.loads(issue.json)
+    parsedJson['serverNeedsAnalysis'] = False
+    issue.json = json.dumps(parsedJson)
+    issue.put()
+    self.response.set_status(200)
+
 class SearchProxy(webapp2.RequestHandler):
   def get(self):
     self.response.headers.add_header("Access-Control-Allow-Origin", "*")
@@ -52,5 +69,6 @@ class SearchProxy(webapp2.RequestHandler):
 
 app = webapp2.WSGIApplication([
   webapp2.Route(r'/api/<issueNumber>', handler=ApiProxy),
+  webapp2.Route(r'/privateApi/<issueNumber>', handler=PrivateApiProxy),
   webapp2.Route(r'/search', handler=SearchProxy),
 ], debug=True)
