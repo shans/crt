@@ -152,6 +152,13 @@ Polymer({
 
   handleCL(cl) {
     cl = fastAnnotate(cl);
+    
+    if (cl.serverNeedsAnalysis) {
+      var request = new Request(`https://chromium-review-analysis.appspot.com/privateApi/${cl.issue}`,
+        { method: 'POST', body: JSON.stringify(cl), credentials: 'include', mode: 'no-cors' });
+      fetch(request);
+    }
+
     if (cl.waitingTimes["waiting for review"] == undefined) {
       console.log(cl.waitingTimes, cl.issue);
       return;
