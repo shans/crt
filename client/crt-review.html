@@ -33,7 +33,6 @@ Polymer({
   handleResponse: function(e) {
     annotate(e.detail.response).then(data => {
       this.summary = summarize(data);
-      console.log(data);
       data.patchset_info = data.patchset_data.map(summarize_patchset);
       this.data = data;
       if (data.serverNeedsAnalysis) {
