@@ -23,7 +23,11 @@ handlers:
   script: api.app
   secure: always
 
+- url: /privateApi/.*
+  script: api.app
+  login: admin
+  secure: always
+
 - url: /
   static_dir: client
-  login: admin
   secure: always
